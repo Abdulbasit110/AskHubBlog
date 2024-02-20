@@ -69,16 +69,26 @@ function myFunction() {
   }
 }
 const logInUser = () => {
-  // console.log(email.value, password.value);
-  signInWithEmailAndPassword(auth, email.value, password.value)
+  const userEmail = email.value;
+  const userPassword = password.value;
+
+  if (!userEmail || !userPassword) {
+    console.log("Email or password is empty");
+    return; // Stop the function if fields are empty
+  }
+
+  signInWithEmailAndPassword(auth, userEmail, userPassword)
     .then((userCredential) => {
       // Signed in
       const user = userCredential.user;
-      // ...
+      console.log("Successfully logged in:", user);
+      // Redirect or perform actions after successful login
     })
     .catch((error) => {
       const errorCode = error.code;
       const errorMessage = error.message;
+      console.error("Login failed:", errorCode, errorMessage);
+      // Display error message to the user
     });
 };
 
