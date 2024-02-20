@@ -76,6 +76,7 @@ const logInUser = () => {
 
   if (!userEmail || !userPassword) {
     console.log("Email or password is empty");
+    // Optionally, you can update the UI to inform the user that the email or password fields are empty
     return; // Stop the function if fields are empty
   }
 
@@ -89,8 +90,21 @@ const logInUser = () => {
     .catch((error) => {
       const errorCode = error.code;
       const errorMessage = error.message;
-      console.error("Login failed:", errorCode, errorMessage);
       // Display error message to the user
+      console.error("Login failed:", errorCode, errorMessage);
+
+      // Check if the error code is related to the wrong password
+      if (errorCode === "auth/wrong-password") {
+        // Update your UI here to show the error message
+        const errorElement = document.getElementById("loginError"); // Assuming you have an element with id="loginError"
+        errorElement.textContent = "Incorrect password. Please try again."; // Set the text content to your error message
+        errorElement.style.display = "block"; // Make sure the element is visible
+      } else {
+        // Handle other types of errors (e.g., user not found)
+        const errorElement = document.getElementById("loginError"); // Reuse the same error element for other errors
+        errorElement.textContent = errorMessage; // Use the Firebase error message directly
+        errorElement.style.display = "block";
+      }
     });
 };
 
