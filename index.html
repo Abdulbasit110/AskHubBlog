@@ -73,16 +73,20 @@
                 required
                 class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
               />
+              <input
+                id="showPassword"
+                type="checkbox"
+                onclick="myFunction()"
+              /><label for="showPassword">Show Password</label>
             </div>
           </div>
 
           <div>
             <button
-              id="Signupbtn"
-              type="submit"
+              id="logInbtn"
               class="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
             >
-              Sign up
+              Log In
             </button>
           </div>
           <div>
@@ -93,23 +97,23 @@
             >
               Continue with Google<i class="fa-brands fa-google ms-2 mt-1"></i>
             </button>
-            <!-- <button
+            <button
               id="createAccount"
               type="submit"
               class="mt-4 flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
             >
               Create Account
-            </button> -->
+            </button>
           </div>
         </div>
       </div>
     </div>
     <!-- sign Up page  -->
-    <!-- <div id="newAccountPage" class="flex justify-center items-center h-screen">
+    <div id="newAccountPage" class="flex justify-center items-center h-screen">
       <div class="bg-white p-8 rounded shadow-md w-96">
-        <h2 class="text-2xl font-bold mb-4">Create Account</h2>
-        <form novalidate>
-          <div class="mb-4">
+        <h2 class="text-2xl font-bold mb-10">Create Account</h2>
+        <div>
+          <!-- <div class="mb-4">
             <label for="name" class="block text-gray-700 text-sm font-bold mb-2"
               >Name</label
             >
@@ -120,7 +124,7 @@
               class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
               required
             />
-          </div>
+          </div> -->
           <div class="mb-4">
             <label
               for="newEmail"
@@ -151,16 +155,16 @@
           </div>
           <div class="flex justify-end">
             <button
-              id="signInWithEmailAndPassword"
+              id="createAccountbtn"
               type="submit"
               class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
             >
               Create Account
             </button>
           </div>
-        </form>
+        </div>
       </div>
-    </div> -->
+    </div>
     <script type="module" src="./app.js"></script>
   </body>
 </html>

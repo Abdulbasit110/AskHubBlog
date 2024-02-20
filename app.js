@@ -49,21 +49,51 @@ const signInWithEmailAndPasswordButton = document.getElementById(
 );
 const email = document.getElementById("email");
 const password = document.getElementById("password");
-// console.log(email, password);
 const Signupbtn = document.getElementById("Signupbtn");
-console.log(Signupbtn);
-const logOUtButton = document.getElementById("logOutButton");
+const logInbtn = document.getElementById("logInbtn");
+const logOutButton = document.getElementById("logOutButton");
 const newEmail = document.getElementById("newEmail");
 const newPassword = document.getElementById("newPassword");
 const Signup = document.getElementById("newAccountPage");
 const logIn = document.getElementById("logIn");
-const newBlogForm = document.getElementById("newBlogForm");
+const createAccountbtn = document.getElementById("createAccountbtn");
+const createAccount = document.getElementById("createAccount");
+const showPassword = document.getElementById("showPassword");
+Signup ? (Signup.style.display = "none") : null;
 
+function myFunction() {
+  if (password.type === "password") {
+    password.type = "text";
+  } else {
+    password.type = "password";
+  }
+}
+const logInUser = () => {
+  // console.log(email.value, password.value);
+  signInWithEmailAndPassword(auth, email.value, password.value)
+    .then((userCredential) => {
+      // Signed in
+      const user = userCredential.user;
+      // ...
+    })
+    .catch((error) => {
+      const errorCode = error.code;
+      const errorMessage = error.message;
+    });
+};
+
+const showNewAccountForm = () => {
+  Signup.style.display = "flex";
+  logIn.style.display = "none";
+};
 const signupUser = () => {
-  createUserWithEmailAndPassword(auth, email.value, password.value)
+  console.log(createAccountbtn);
+  createUserWithEmailAndPassword(auth, newEmail.value, newPassword.value)
     .then((userCredential) => {
       const user = userCredential.user;
-      console.log(user);
+      if (user.emailVerified) {
+        return;
+      }
     })
     .catch((error) => {
       const errorCode = error.code;
@@ -102,6 +132,7 @@ const signInWithGoogle = () => {
 };
 
 const logOut = () => {
+  console.log(logOutButton);
   signOut(auth)
     .then(() => {
       // Sign-out successful.
@@ -119,7 +150,10 @@ const newBlog = () => {
 signWithGoogleButton &&
   signWithGoogleButton.addEventListener("click", signInWithGoogle);
 
-// signInWithEmailAndPasswordButton &&
-//   signInWithEmailAndPasswordButton.addEventListener("click", signupUser);
-logOUtButton && logOUtButton.addEventListener("click", logOut);
-Signupbtn && Signupbtn.addEventListener("click", signupUser);
+logOutButton && logOutButton.addEventListener("click", logOut);
+
+createAccountbtn && createAccountbtn.addEventListener("click", signupUser);
+createAccount && createAccount.addEventListener("click", showNewAccountForm);
+logInbtn && logInbtn.addEventListener("click", logInUser);
+
+showPassword && showPassword.addEventListener("click", myFunction);
