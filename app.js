@@ -59,7 +59,9 @@ const logIn = document.getElementById("logIn");
 const createAccountbtn = document.getElementById("createAccountbtn");
 const createAccount = document.getElementById("createAccount");
 const showPassword = document.getElementById("showPassword");
+const newBlogForm = document.getElementById("newBlogForm");
 Signup ? (Signup.style.display = "none") : null;
+newBlogForm ? (newBlogForm.style.display = "none") : null;
 
 function myFunction() {
   if (password.type === "password") {
