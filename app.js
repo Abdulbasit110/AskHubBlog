@@ -38,6 +38,8 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+const db = getFirestore(app);
+const storage = getStorage();
 const provider = new GoogleAuthProvider();
 
 const currentPageName = window.location.pathname.split("/").pop();
@@ -60,6 +62,7 @@ const createAccountbtn = document.getElementById("createAccountbtn");
 const createAccount = document.getElementById("createAccount");
 const showPassword = document.getElementById("showPassword");
 const newBlogForm = document.getElementById("newBlogForm");
+const signupErrorMessageElement = document.getElementById("signupErrorMessage");
 Signup ? (Signup.style.display = "none") : null;
 newBlogForm ? (newBlogForm.style.display = "none") : null;
 
@@ -113,29 +116,46 @@ const showNewAccountForm = () => {
   logIn.style.display = "none";
 };
 const signupUser = () => {
-  console.log(createAccountbtn);
-  createUserWithEmailAndPassword(auth, newEmail.value, newPassword.value)
+  const newEmailValue = newEmail.value;
+  const newPasswordValue = newPassword.value;
+
+  if (!newEmailValue || !newPasswordValue) {
+    console.log("Email or password is empty");
+    // Optionally, update UI to inform the user that the email or password cannot be empty.
+    return; // Stop the function if fields are empty.
+  }
+
+  createUserWithEmailAndPassword(auth, newEmailValue, newPasswordValue)
     .then((userCredential) => {
+      // User created
       const user = userCredential.user;
-      if (user.emailVerified) {
-        return;
-      }
+      console.log(user);
     })
     .catch((error) => {
+      // Handle errors here, such as email already in use.
       const errorCode = error.code;
       const errorMessage = error.message;
-      console.log(errorMessage);
+      console.error("Signup failed:", errorCode, errorMessage);
+      // Update UI here to display error message
+      // Assuming you have this element in your HTML
+      signupErrorMessageElement.textContent = errorMessage;
+      signupErrorMessageElement.style.display = "block"; // Make sure the element is visible
     });
 };
 
 const observer = () => {
   onAuthStateChanged(auth, (user) => {
-    if (user) {
+    console.log(user.emailVerified);
+    if (user && user.emailVerified) {
       if (currentPageName !== "blog.html") {
         window.location.href = "blog.html";
       }
       console.log(user);
     } else {
+      if (newEmail.value) {
+        signupErrorMessageElement.textContent = "Invalid Email";
+        signupErrorMessageElement.style.display = "block"; // Make sure the element is visible
+      }
       if (currentPageName !== "index.html" && currentPageName !== "") {
         window.location.href = "/";
       }
