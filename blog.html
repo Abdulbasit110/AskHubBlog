@@ -82,7 +82,7 @@
             <span class="badge badge-xs badge-primary indicator-item"></span>
           </div>
         </button>
-        <button class="btn btn-ghost btn-circle">
+        <button class="btn btn-ghost btn-circle" id="addBlog">
           <div class="pl-8" title="Add blog">
             <label for="fileUpload" class="file-input-label cursor-pointer">
               <svg
@@ -173,23 +173,23 @@
                     <div>
                         <div class="mb-4">
                             <label class="text-xl text-gray-600">Title <span class="text-red-500">*</span></label></br>
-                            <input type="text" class="border-2 border-gray-300 p-2 w-full" name="title" id="title" value="" required>
+                            <input  type="text" class="border-2 border-gray-300 p-2 w-full" name="title" id="title" value="" required>
                         </div>
 
                         <div class="mb-4">
                             <label class="text-xl text-gray-600">Description</label></br>
-                            <input type="text" class="border-2 border-gray-300 p-2 w-full" name="description" id="description" placeholder="(Optional)">
+                            <input  type="text" class="border-2 border-gray-300 p-2 w-full" name="description" id="description" placeholder="(Optional)">
                         </div>
 
                         <div class="mb-8">
                             <label class="text-xl text-gray-600">Content <span class="text-red-500">*</span></label></br>
-                            <textarea name="content" class="border-2 border-gray-500">
+                            <textarea id="content" name="content" class="border-2 border-gray-500">
                                 
                             </textarea>
                         </div>
                         
                         <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white" for="file_input">Upload file</label>
-                        <input class="mb-2 block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none " id="file_input" type="file">
+                        <input class="mb-2 block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none " id="image" type="file">
 
 
                         <div class="flex p-1">
@@ -197,7 +197,7 @@
                                 <option>Save and Publish</option>
                                 <option>Save Draft</option>
                             </select>
-                            <button role="submit" class="p-3 bg-blue-500 text-white hover:bg-blue-400" required>Submit</button>
+                            <button id="submitBlog" role="submit" class="p-3 bg-blue-500 text-white hover:bg-blue-400" required>Submit</button>
                         </div>
                     </div>
                 </div>

@@ -63,6 +63,9 @@ const createAccount = document.getElementById("createAccount");
 const showPassword = document.getElementById("showPassword");
 const newBlogForm = document.getElementById("newBlogForm");
 const signupErrorMessageElement = document.getElementById("signupErrorMessage");
+const addBlogbtn = document.getElementById("addBlog");
+const blogs = document.getElementById("blogs");
+const submitBlog = document.getElementById("submitBlog");
 Signup ? (Signup.style.display = "none") : null;
 newBlogForm ? (newBlogForm.style.display = "none") : null;
 
@@ -73,6 +76,52 @@ function myFunction() {
     password.type = "password";
   }
 }
+
+const addBlog = async () => {
+  newBlogForm.style.display = "block";
+  blogs.style.display = "none";
+};
+const submitBlogfunc = () => {
+  console.log("inside submit blog function");
+  const title = document.getElementById("title").value;
+  const content = document.getElementById("content").value;
+  const description = document.getElementById("description").value;
+  const image = document.getElementById("image").files[0];
+  const storageRef = ref(storage, `images/${image.name}`);
+  const uploadTask = uploadBytesResumable(storageRef, image);
+  uploadTask.on(
+    "state_changed",
+    (snapshot) => {
+      console.log(snapshot);
+    },
+    (error) => {
+      console.log(error);
+    },
+    () => {
+      getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+        console.log("File available at", downloadURL);
+        setDoc(doc(db, "blogs", title), {
+          timestamp: new Date(),
+          id: new Date().getTime(),
+          title,
+          content,
+          image: downloadURL,
+          description,
+        });
+      });
+      getBlogs();
+    }
+  );
+};
+
+const getBlogs = async () => {
+  const q = query(collection(db, "blogs"), orderBy("timestamp", "desc"));
+  const querySnapshot = await getDocs(q);
+  querySnapshot.forEach((doc) => {
+    console.log(`${doc.id} => ${doc.data()}`);
+  });
+};
+
 const logInUser = () => {
   const userEmail = email.value;
   const userPassword = password.value;
@@ -203,3 +252,5 @@ createAccount && createAccount.addEventListener("click", showNewAccountForm);
 logInbtn && logInbtn.addEventListener("click", logInUser);
 
 showPassword && showPassword.addEventListener("click", myFunction);
+addBlogbtn && addBlogbtn.addEventListener("click", addBlog);
+submitBlog && submitBlog.addEventListener("click", submitBlogfunc);
