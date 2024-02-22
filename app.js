@@ -39,7 +39,8 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-const storage = getStorage();
+const storage = getStorage(app);
+const user = auth.currentUser;
 const provider = new GoogleAuthProvider();
 
 const currentPageName = window.location.pathname.split("/").pop();
@@ -82,7 +83,8 @@ const addBlog = async () => {
   newBlogForm.style.display = "block";
   blogs.style.display = "none";
 };
-const submitBlogfunc = () => {
+const submitBlogfunc = async () => {
+  const user = auth.currentUser;
   console.log("inside submit blog function");
   const title = document.getElementById("title").value;
   const content = document.getElementById("content").value;
@@ -98,30 +100,78 @@ const submitBlogfunc = () => {
     (error) => {
       console.log(error);
     },
-    () => {
+    async () => {
       getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+        const { email, displayName, photoURL, uid } = user;
+        const id = new Date().getTime();
         console.log("File available at", downloadURL);
-        setDoc(doc(db, "blogs", title), {
+        setDoc(doc(db, "blogs", `${id}`), {
+          email,
+          uid,
+          displayName,
+          photoURL,
           timestamp: new Date(),
-          id: new Date().getTime(),
+          id,
           title,
           content,
-          image: downloadURL,
+          imageUrl: downloadURL,
           description,
         });
       });
-      getBlogs();
     }
   );
   newBlogForm.style.display = "none";
   blogs.style.display = "block";
 };
 
-const getBlogs = async () => {
-  const q = query(collection(db, "blogs"), orderBy("timestamp", "desc"));
-  const querySnapshot = await getDocs(q);
-  querySnapshot.forEach((doc) => {
-    console.log(`${doc.id} => ${doc.data()}`);
+const loadBlogs = () => {
+  const uid = user.uid;
+  console.log(uid);
+  const q = query(
+    collection(db, "blogs"),
+    where("uid", "==", `${uid}`),
+    orderBy("timestamp"),
+    limit(25)
+  );
+
+  const unsubscribe = onSnapshot(q, (querySnapshot) => {
+    const messagesHTML = querySnapshot.docs
+      .map((doc) => {
+        const blog = doc.data();
+        const date = blog.timestamp;
+        const hours = date.getHours();
+        const minutes = date.getMinutes();
+        const formattedTime = `${hours}:${minutes}`;
+
+        return `
+          <div class="py-12 border-t-2 border-gray-100">
+           
+        <div class="flex flex-wrap lg:flex-nowrap items-center">
+          <div class="w-full lg:w-auto px-4 mb-8 lg:mb-0">
+            <img class="block w-44 h-30" src="${blog.imageUrl}" alt="${blog.title}">
+          </div>
+          <div class="w-full lg:w-9/12 px-4 mb-10 lg:mb-0">
+            <div class="max-w-2xl">
+              <span class="block text-gray-400 mb-1">${formattedTime}</span>
+              <h2 class="text-3xl font-bold text-gray-900">${blog.title}</h2>
+              <p class="text-2xl font-semibold text-gray-900">${blog.content[10]}</p>
+            </div>
+          </div>
+          <div class="w-full lg:w-auto px-4 ml-auto text-right">
+            <a class="inline-flex items-center text-xl font-semibold text-orange-900 hover:text-gray-900" href="#">
+              <span id="read" class="mr-2">Read</span>
+              <svg class="animate-bounce" width="16" height="16" viewbox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M1.33301 14.6668L14.6663 1.3335" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                <path d="M1.33301 1.3335H14.6663V14.6668" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+              </svg>
+            </a>
+          </div>
+        </div>
+      </div>
+        `;
+      })
+      .join("");
+    blogs.innerHTML = messagesHTML;
   });
 };
 
@@ -201,6 +251,7 @@ const observer = () => {
     if (user && user.emailVerified) {
       if (currentPageName !== "blog.html") {
         window.location.href = "blog.html";
+        loadBlogs();
       }
       userEmail.textContent = user.email;
       console.log(user.email);
