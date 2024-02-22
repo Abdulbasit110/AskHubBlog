@@ -66,6 +66,7 @@ const signupErrorMessageElement = document.getElementById("signupErrorMessage");
 const addBlogbtn = document.getElementById("addBlog");
 const blogs = document.getElementById("blogs");
 const submitBlog = document.getElementById("submitBlog");
+const userEmail = document.getElementById("userEmail");
 Signup ? (Signup.style.display = "none") : null;
 newBlogForm ? (newBlogForm.style.display = "none") : null;
 
@@ -112,6 +113,8 @@ const submitBlogfunc = () => {
       getBlogs();
     }
   );
+  newBlogForm.style.display = "none";
+  blogs.style.display = "block";
 };
 
 const getBlogs = async () => {
@@ -199,6 +202,8 @@ const observer = () => {
       if (currentPageName !== "blog.html") {
         window.location.href = "blog.html";
       }
+      userEmail.textContent = user.email;
+      console.log(user.email);
       console.log(user);
     } else {
       if (newEmail.value) {
@@ -237,9 +242,9 @@ const logOut = () => {
     });
 };
 
-const newBlog = () => {
-  window.location.href = "newBlog.html";
-};
+// const newBlog = () => {
+//   window.location.href = "newBlog.html";
+// };
 
 //! EVENT LISTENERS
 signWithGoogleButton &&
