@@ -23,6 +23,7 @@ import {
   onSnapshot,
   orderBy,
   limit,
+  where,
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -125,50 +126,152 @@ const submitBlogfunc = async () => {
 };
 
 const loadBlogs = () => {
+  const user = auth.currentUser;
   const uid = user.uid;
-  console.log(uid);
+  console.log(user);
   const q = query(
     collection(db, "blogs"),
     where("uid", "==", `${uid}`),
     orderBy("timestamp"),
     limit(25)
   );
-
+  console.log(q);
   const unsubscribe = onSnapshot(q, (querySnapshot) => {
-    const messagesHTML = querySnapshot.docs
-      .map((doc) => {
-        const blog = doc.data();
-        const date = blog.timestamp;
-        const hours = date.getHours();
-        const minutes = date.getMinutes();
-        const formattedTime = `${hours}:${minutes}`;
+    if (!querySnapshot.empty) {
+      const messagesHTML = querySnapshot.docs
+        .map((doc) => {
+          const blog = doc.data();
+          console.log(blogs);
+          const date = new Date(blog.timestamp);
+          const hours = date.getHours();
+          const minutes = date.getMinutes();
+          const formattedDate = `${hours}:${minutes}`;
+          console.log(formattedDate);
 
-        return `
-          <div class="py-12 border-t-2 border-gray-100">
-           
+          return `
+          <div class="py-12 border-2 border-base-300 my-3 rounded-xl">
+
         <div class="flex flex-wrap lg:flex-nowrap items-center">
           <div class="w-full lg:w-auto px-4 mb-8 lg:mb-0">
             <img class="block w-44 h-30" src="${blog.imageUrl}" alt="${blog.title}">
           </div>
           <div class="w-full lg:w-9/12 px-4 mb-10 lg:mb-0">
             <div class="max-w-2xl">
-              <span class="block text-gray-400 mb-1">${formattedTime}</span>
-              <h2 class="text-3xl font-bold text-gray-900">${blog.title}</h2>
-              <p class="text-2xl font-semibold text-gray-900">${blog.content[10]}</p>
+              <span class="block text-gray-400 mb-1">${formattedDate}</span>
+              <h1 class="text-3xl font-bold text-gray-900">${blog.title}</h1>
+              <p class="text-2xl font-semibold text-gray-900">${blog.content}</p>
             </div>
           </div>
           <div class="w-full lg:w-auto px-4 ml-auto text-right">
             <a class="inline-flex items-center text-xl font-semibold text-orange-900 hover:text-gray-900" href="#">
-              <span id="read" class="mr-2">Read</span>
+            <button id="read"><span  class="mr-2" data_id = "${blog.id}">Read</span></button>
               <svg class="animate-bounce" width="16" height="16" viewbox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M1.33301 14.6668L14.6663 1.3335" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
                 <path d="M1.33301 1.3335H14.6663V14.6668" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
               </svg>
             </a>
+            <button class="btn btn-error mt-32 me-2" id="delete">Delete</button>
           </div>
         </div>
       </div>
         `;
+        })
+        .join("");
+      blogs.innerHTML = messagesHTML;
+      const read = document.querySelectorAll("#read");
+      const deleteBtn = document.querySelectorAll("#delete");
+      deleteBtn.forEach((d, index) => {
+        d.addEventListener("click", deleteBlog, index);
+      });
+      read.forEach((r) => {
+        r.addEventListener("click", previewBlog);
+        console.log(r);
+      });
+    } else {
+      blogs.innerHTML = `
+ <h1 class="mb-4 text-4xl font-extrabold leading-none tracking-tight text-gray-900 md:text-5xl lg:text-6xl dark:text-white">Let's start bloging / asking</h1> 
+<p class="mb-6 text-lg font-normal text-gray-500 lg:text-xl sm:px-16 xl:px-48 dark:text-gray-400">Here at Flowbite we focus on markets where technology, innovation, and capital can unlock long-term value and drive economic growth.</p>
+<a id="btn" href="#" class="inline-flex items-center justify-center px-5 py-3 text-base font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 dark:focus:ring-blue-900">
+    Learn more
+    <svg class="w-3.5 h-3.5 ms-2 rtl:rotate-180" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
+    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 5h12m0 0L9 1m4 4L9 9"/>
+  </svg>
+</a>`;
+    }
+    const btn = document.getElementById("btn");
+    btn && btn.addEventListener("click", addBlog);
+    console.log(btn);
+  });
+};
+
+const previewBlog = async (e) => {
+  const blogId = e.target.data_id;
+  console.log(blogId);
+  const q = query(collection(db, "blogs"), where("id", "==", `${blogId}`));
+  const unsubscribe = onSnapshot(q, (querySnapshot) => {
+    const messagesHTML = querySnapshot.docs
+      .map((doc) => {
+        const blog = doc.data();
+        return `
+  <div class="max-w-screen-lg mx-auto">
+    <div class="mb-4 md:mb-0 w-full mx-auto relative">
+      <div class="px-4 lg:px-0">
+        <h2 class="text-4xl font-semibold text-gray-800 leading-tight">
+          ${blog.title}
+        </h2>
+        <a
+          href="#"
+          class="py-2 text-green-700 inline-flex items-center justify-center mb-2"
+        >
+          ${blog.timestamp}
+        </a>
+        <a
+          href="#"
+          class="py-2 text-green-700 inline-flex items-center justify-center mb-2"
+        >
+          ${blog.description}
+        </a>
+      </div>
+
+      <img
+        alt="${blog.title}"
+        src="${blog.imageUrl}"
+        class="w-full object-cover lg:rounded"
+        style="height: 28em;"
+      />
+    </div>
+    <div class="flex flex-col lg:flex-row lg:space-x-12">
+      <div class="px-4 lg:px-0 mt-12 text-gray-700 text-lg leading-relaxed w-full lg:w-3/4">
+        <p class="pb-6">${blog.content}</p>
+      </div>
+
+      <div class="w-full lg:w-1/4 m-auto mt-12 max-w-screen-sm">
+        <div class="p-4 border-t border-b md:border md:rounded">
+          <div class="flex py-2">
+            <img
+              src="${blog.photoURL}"
+              class="h-10 w-10 rounded-full mr-2 object-cover"
+            />
+            <div>
+              <p class="font-semibold text-gray-700 text-sm">
+                ${blog.displayName}
+              </p>
+              <p class="font-semibold text-gray-600 text-xs"> Author </p>
+              <p class="font-semibold text-gray-600 text-xs"> ${blog.email} </p>
+            </div>
+          </div>
+          <p class="text-gray-700 py-3">
+            Mike writes about technology Yourself required no at thoughts
+            delicate landlord it be. Branched dashwood do is whatever it.
+          </p>
+          <button class="px-2 py-1 text-gray-100 bg-green-700 flex w-full items-center justify-center rounded">
+            Follow
+            <i class="bx bx-user-plus ml-2"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>`;
       })
       .join("");
     blogs.innerHTML = messagesHTML;
@@ -251,8 +354,8 @@ const observer = () => {
     if (user && user.emailVerified) {
       if (currentPageName !== "blog.html") {
         window.location.href = "blog.html";
-        loadBlogs();
       }
+      loadBlogs();
       userEmail.textContent = user.email;
       console.log(user.email);
       console.log(user);
@@ -292,10 +395,6 @@ const logOut = () => {
       // An error happened.
     });
 };
-
-// const newBlog = () => {
-//   window.location.href = "newBlog.html";
-// };
 
 //! EVENT LISTENERS
 signWithGoogleButton &&
