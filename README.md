@@ -1,6 +1,3 @@
-Sure, here's a README tailored for your AskHubBlog project:
-
----
 
 # AskHubBlog
 
