@@ -118,6 +118,10 @@ const previewAllBlogs = () => {
         .join("");
 
       blogs.innerHTML = messagesHTML;
+      const read = document.querySelectorAll("#read");
+      read.forEach((r) => {
+        r.addEventListener("click", previewBlog);
+      });
     } else {
       loadingBar.style.display = "none";
       blogs.innerHTML = `
@@ -169,6 +173,7 @@ const submitBlogfunc = async () => {
 };
 
 const generateBlogHTML = (blog) => {
+  const user = auth.currentUser;
   // console.log(typeof blog.id);
   const date = new Date(blog.timestamp);
   // console.log(date);
@@ -179,15 +184,16 @@ const generateBlogHTML = (blog) => {
   const formattedDate = `${hours}:${minutes}`;
   const content = blog.content;
   // console.log(typeof content);
-  return `
+  if (user.uid === blog.uid) {
+    return `
 
     <div class="py-12 border-2 border-base-300 my-3 rounded-xl">
     
       <div class="flex flex-wrap lg:flex-nowrap items-center">
         <div class="w-full lg:w-auto px-4 mb-8 lg:mb-0">
           <img class="block w-44 h-30" src="${blog.imageUrl}" alt="${
-    blog.title
-  }">
+      blog.title
+    }">
         </div>
         <div class="w-full lg:w-9/12 px-4 mb-10 lg:mb-0">
           <div class="max-w-2xl">
@@ -216,6 +222,42 @@ const generateBlogHTML = (blog) => {
       </div>
     </div>
   `;
+  } else {
+    return `
+    <div class="py-12 border-2 border-base-300 my-3 rounded-xl">
+    
+      <div class="flex flex-wrap lg:flex-nowrap items-center">
+        <div class="w-full lg:w-auto px-4 mb-8 lg:mb-0">
+          <img class="block w-44 h-30" src="${blog.imageUrl}" alt="${
+      blog.title
+    }">
+        </div>
+        <div class="w-full lg:w-9/12 px-4 mb-10 lg:mb-0">
+          <div class="max-w-2xl">
+            <span class="block text-gray-400 mb-1">${formattedDate}</span>
+            <h1 class="text-3xl font-bold text-gray-900">${blog.title}</h1>
+            <p class="text-2xl font-semibold text-gray-900">${content.substr(
+              0,
+              50
+            )}...</p>
+          </div>
+        </div>
+        <div class="w-full lg:w-auto px-4 ml-auto text-right">
+          <a class="inline-flex items-center text-xl font-semibold text-orange-900 hover:text-gray-900" href="#">
+            <button  id="read" dataset_item="${
+              blog.id
+            }" class="mr-2" >Read</button>
+            <svg class="animate-bounce" width="16" height="16" viewbox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M1.33301 14.6668L14.6663 1.3335" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+              <path d="M1.33301 1.3335H14.6663V14.6668" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+            </svg>
+          </a>
+          
+        </div>
+      </div>
+    </div>
+    `;
+  }
 };
 const deleteBlog = async (e) => {
   const blogId = e.target.getAttribute("dataset_delete"); // Assuming you're passing the blog id through a data attribute
