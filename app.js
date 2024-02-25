@@ -464,7 +464,7 @@ const observer = () => {
       // console.log(profile);
     } else {
       if (currentPageName !== "index.html" && currentPageName !== "") {
-        window.location.href = "/";
+        window.location.href = "index.html";
       }
       const bool = Signup.style.display === "flex";
       if (bool && newEmail.value) {
