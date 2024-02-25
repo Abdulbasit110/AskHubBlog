@@ -17,6 +17,7 @@ import {
 import {
   setDoc,
   doc,
+  deleteDoc,
   getFirestore,
   collection,
   query,
@@ -69,6 +70,12 @@ const addBlogbtn = document.getElementById("addBlog");
 const blogs = document.getElementById("blogs");
 const submitBlog = document.getElementById("submitBlog");
 const userEmail = document.getElementById("userEmail");
+const mobileHomeLink = document.getElementById("mobileHomeLink");
+const mobileLogoutLink = document.getElementById("mobileLogoutLink");
+const logoutLink = document.getElementById("logoutLink");
+const homeLink = document.getElementById("homeLink");
+const askhubblog = document.getElementById("askhubblog");
+const profile = document.getElementById("profile");
 Signup ? (Signup.style.display = "none") : null;
 newBlogForm ? (newBlogForm.style.display = "none") : null;
 
@@ -84,9 +91,44 @@ const addBlog = async () => {
   newBlogForm.style.display = "block";
   blogs.style.display = "none";
 };
+const backToBlogs = async () => {
+  newBlogForm.style.display = "none";
+  blogs.style.display = "block";
+  loadBlogs();
+};
+const previewAllBlogs = () => {
+  const loadingBar = document.getElementById("loadingBar");
+  loadingBar.style.display = "flex";
+
+  const q = query(
+    collection(db, "blogs"),
+    orderBy("timestamp", "desc"), // Order blogs by timestamp in descending order
+    limit(10) // Limit the number of blogs to display
+  );
+
+  const unsubscribe = onSnapshot(q, (querySnapshot) => {
+    if (!querySnapshot.empty) {
+      loadingBar.style.display = "none";
+      const messagesHTML = querySnapshot.docs
+        .map((doc) => {
+          const blog = doc.data();
+          return generateBlogHTML(blog); // Using the generateBlogHTML function here
+        })
+        .join("");
+
+      blogs.innerHTML = messagesHTML;
+    } else {
+      loadingBar.style.display = "none";
+      blogs.innerHTML = `
+        <h1 class="text-4xl font-bold text-gray-900">No blogs found.</h1>
+      `;
+    }
+  });
+};
+
 const submitBlogfunc = async () => {
   const user = auth.currentUser;
-  console.log("inside submit blog function");
+  // console.log("inside submit blog function");
   const title = document.getElementById("title").value;
   const content = document.getElementById("content").value;
   const description = document.getElementById("description").value;
@@ -105,13 +147,13 @@ const submitBlogfunc = async () => {
       getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
         const { email, displayName, photoURL, uid } = user;
         const id = new Date().getTime();
-        console.log("File available at", downloadURL);
+        // console.log("File available at", downloadURL);
         setDoc(doc(db, "blogs", `${id}`), {
           email,
           uid,
           displayName,
           photoURL,
-          timestamp: new Date(),
+          timestamp: id,
           id,
           title,
           content,
@@ -125,87 +167,121 @@ const submitBlogfunc = async () => {
   blogs.style.display = "block";
 };
 
+const generateBlogHTML = (blog) => {
+  const date = new Date(blog.timestamp);
+  // console.log(date);
+  const hours = date.getHours();
+  // console.log(hours);
+  const minutes = date.getMinutes();
+  // console.log(minutes);
+  const formattedDate = `${hours}:${minutes}`;
+  const content = blog.content;
+  // console.log(typeof content);
+  return `
+
+    <div class="py-12 border-2 border-base-300 my-3 rounded-xl">
+    
+      <div class="flex flex-wrap lg:flex-nowrap items-center">
+        <div class="w-full lg:w-auto px-4 mb-8 lg:mb-0">
+          <img class="block w-44 h-30" src="${blog.imageUrl}" alt="${
+    blog.title
+  }">
+        </div>
+        <div class="w-full lg:w-9/12 px-4 mb-10 lg:mb-0">
+          <div class="max-w-2xl">
+            <span class="block text-gray-400 mb-1">${formattedDate}</span>
+            <h1 class="text-3xl font-bold text-gray-900">${blog.title}</h1>
+            <p class="text-2xl font-semibold text-gray-900">${content.substr(
+              0,
+              50
+            )}...</p>
+          </div>
+        </div>
+        <div class="w-full lg:w-auto px-4 ml-auto text-right">
+          <a class="inline-flex items-center text-xl font-semibold text-orange-900 hover:text-gray-900" href="#">
+            <button  id="read" dataset_item="${
+              blog.id
+            }" class="mr-2" >Read</button>
+            <svg class="animate-bounce" width="16" height="16" viewbox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M1.33301 14.6668L14.6663 1.3335" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+              <path d="M1.33301 1.3335H14.6663V14.6668" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+            </svg>
+          </a>
+          <button class="btn btn-error mt-32 me-2" id="delete" dataset_delete="${
+            blog.id
+          }">Delete</button>
+        </div>
+      </div>
+    </div>
+  `;
+};
+const deleteBlog = async (e) => {
+  const blogId = e.target.dataset_delete; // Assuming you're passing the blog id through a data attribute
+  console.log(blogId);
+  try {
+    await deleteDoc(doc(db, "blogs", `${blogId}`));
+    console.log("Blog deleted successfully");
+  } catch (error) {
+    console.error("Error deleting blog:", error);
+    // Handle error, maybe show a message to the user
+  }
+};
+
 const loadBlogs = () => {
+  const loadingBar = document.getElementById("loadingBar");
+  loadingBar.style.display = "flex";
   const user = auth.currentUser;
   const uid = user.uid;
-  console.log(user);
+  // console.log(user);
   const q = query(
     collection(db, "blogs"),
     where("uid", "==", `${uid}`),
     orderBy("timestamp"),
     limit(25)
   );
-  console.log(q);
+  // console.log(q);
   const unsubscribe = onSnapshot(q, (querySnapshot) => {
     if (!querySnapshot.empty) {
+      loadingBar.style.display = "none";
       const messagesHTML = querySnapshot.docs
         .map((doc) => {
           const blog = doc.data();
-          console.log(blogs);
-          const date = new Date(blog.timestamp);
-          const hours = date.getHours();
-          const minutes = date.getMinutes();
-          const formattedDate = `${hours}:${minutes}`;
-          console.log(formattedDate);
-
-          return `
-          <div class="py-12 border-2 border-base-300 my-3 rounded-xl">
-
-        <div class="flex flex-wrap lg:flex-nowrap items-center">
-          <div class="w-full lg:w-auto px-4 mb-8 lg:mb-0">
-            <img class="block w-44 h-30" src="${blog.imageUrl}" alt="${blog.title}">
-          </div>
-          <div class="w-full lg:w-9/12 px-4 mb-10 lg:mb-0">
-            <div class="max-w-2xl">
-              <span class="block text-gray-400 mb-1">${formattedDate}</span>
-              <h1 class="text-3xl font-bold text-gray-900">${blog.title}</h1>
-              <p class="text-2xl font-semibold text-gray-900">${blog.content}</p>
-            </div>
-          </div>
-          <div class="w-full lg:w-auto px-4 ml-auto text-right">
-            <a class="inline-flex items-center text-xl font-semibold text-orange-900 hover:text-gray-900" href="#">
-            <button id="read"><span  class="mr-2" data_id = "${blog.id}">Read</span></button>
-              <svg class="animate-bounce" width="16" height="16" viewbox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M1.33301 14.6668L14.6663 1.3335" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
-                <path d="M1.33301 1.3335H14.6663V14.6668" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
-              </svg>
-            </a>
-            <button class="btn btn-error mt-32 me-2" id="delete">Delete</button>
-          </div>
-        </div>
-      </div>
-        `;
+          return generateBlogHTML(blog); // Using the generateBlogHTML function here
         })
         .join("");
-      blogs.innerHTML = messagesHTML;
+
+      blogs.innerHTML = `  <div class="container mx-auto px-4 text-5xl font-bold flex justify-start my-6 font-mono">MY BLOGS</div>${messagesHTML}`;
       const read = document.querySelectorAll("#read");
       const deleteBtn = document.querySelectorAll("#delete");
-      deleteBtn.forEach((d, index) => {
-        d.addEventListener("click", deleteBlog, index);
+      deleteBtn.forEach((d) => {
+        d.addEventListener("click", deleteBlog);
       });
       read.forEach((r) => {
         r.addEventListener("click", previewBlog);
-        console.log(r);
+        // console.log(r);
       });
     } else {
+      loadingBar.style.display = "none";
       blogs.innerHTML = `
- <h1 class="mb-4 text-4xl font-extrabold leading-none tracking-tight text-gray-900 md:text-5xl lg:text-6xl dark:text-white">Let's start bloging / asking</h1> 
-<p class="mb-6 text-lg font-normal text-gray-500 lg:text-xl sm:px-16 xl:px-48 dark:text-gray-400">Here at Flowbite we focus on markets where technology, innovation, and capital can unlock long-term value and drive economic growth.</p>
-<a id="btn" href="#" class="inline-flex items-center justify-center px-5 py-3 text-base font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 dark:focus:ring-blue-900">
-    Learn more
+      <div class="h-80 sm:ms-10 ">
+ <h1 class="mt-4 text-4xl font-extrabold leading-none tracking-tight text-gray-900 md:text-5xl lg:text-6xl ">Let's start bloging / asking</h1> 
+<p class="mt-10 text-lg font-normal text-gray-500 lg:text-xl sm:px-16 xl:px-48 dark:text-gray-400">your first blog / question is just few clicks away!!</p>
+<a id="btn" href="#" class="inline-flex items-center justify-center px-5 py-3 text-base font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 dark:focus:ring-blue-900 mt-20">
+    Start Now
     <svg class="w-3.5 h-3.5 ms-2 rtl:rotate-180" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
     <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 5h12m0 0L9 1m4 4L9 9"/>
   </svg>
-</a>`;
+</a> </div>`;
     }
     const btn = document.getElementById("btn");
     btn && btn.addEventListener("click", addBlog);
-    console.log(btn);
+    // console.log(btn);
   });
 };
 
 const previewBlog = async (e) => {
-  const blogId = e.target.data_id;
+  const blogId = e.target.dataset_item;
+  console.log(e.target.dataset_item);
   console.log(blogId);
   const q = query(collection(db, "blogs"), where("id", "==", `${blogId}`));
   const unsubscribe = onSnapshot(q, (querySnapshot) => {
@@ -334,7 +410,7 @@ const signupUser = () => {
     .then((userCredential) => {
       // User created
       const user = userCredential.user;
-      console.log(user);
+      // console.log(user);
     })
     .catch((error) => {
       // Handle errors here, such as email already in use.
@@ -350,22 +426,25 @@ const signupUser = () => {
 
 const observer = () => {
   onAuthStateChanged(auth, (user) => {
-    console.log(user.emailVerified);
+    // console.log(user.emailVerified);
     if (user && user.emailVerified) {
       if (currentPageName !== "blog.html") {
         window.location.href = "blog.html";
       }
       loadBlogs();
       userEmail.textContent = user.email;
-      console.log(user.email);
-      console.log(user);
+      profile.src = user.photoURL;
+      // console.log(user.photoURL);
+      // console.log(user.email);
+      // console.log(profile);
     } else {
-      if (newEmail.value) {
-        signupErrorMessageElement.textContent = "Invalid Email";
-        signupErrorMessageElement.style.display = "block"; // Make sure the element is visible
-      }
       if (currentPageName !== "index.html" && currentPageName !== "") {
         window.location.href = "/";
+      }
+      const bool = Signup.style.display === "flex";
+      if (bool && newEmail.value) {
+        signupErrorMessageElement.textContent = "Invalid Email";
+        signupErrorMessageElement.style.display = "block"; // Make sure the element is visible
       }
 
       console.log("User Is not Logged In!");
@@ -386,7 +465,7 @@ const signInWithGoogle = () => {
 };
 
 const logOut = () => {
-  console.log(logOutButton);
+  // console.log(logOutButton);
   signOut(auth)
     .then(() => {
       // Sign-out successful.
@@ -399,13 +478,15 @@ const logOut = () => {
 //! EVENT LISTENERS
 signWithGoogleButton &&
   signWithGoogleButton.addEventListener("click", signInWithGoogle);
-
 logOutButton && logOutButton.addEventListener("click", logOut);
-
 createAccountbtn && createAccountbtn.addEventListener("click", signupUser);
 createAccount && createAccount.addEventListener("click", showNewAccountForm);
 logInbtn && logInbtn.addEventListener("click", logInUser);
-
+mobileLogoutLink && mobileLogoutLink.addEventListener("click", logOut);
+logoutLink && logoutLink.addEventListener("click", logOut);
 showPassword && showPassword.addEventListener("click", myFunction);
 addBlogbtn && addBlogbtn.addEventListener("click", addBlog);
 submitBlog && submitBlog.addEventListener("click", submitBlogfunc);
+mobileHomeLink && mobileHomeLink.addEventListener("click", previewAllBlogs);
+homeLink && homeLink.addEventListener("click", previewAllBlogs);
+askhubblog && askhubblog.addEventListener("click", backToBlogs);
