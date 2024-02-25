@@ -25,6 +25,7 @@ import {
   orderBy,
   limit,
   where,
+  getDocs,
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -138,7 +139,7 @@ const submitBlogfunc = async () => {
   uploadTask.on(
     "state_changed",
     (snapshot) => {
-      console.log(snapshot);
+      // console.log(snapshot);
     },
     (error) => {
       console.log(error);
@@ -168,6 +169,7 @@ const submitBlogfunc = async () => {
 };
 
 const generateBlogHTML = (blog) => {
+  // console.log(typeof blog.id);
   const date = new Date(blog.timestamp);
   // console.log(date);
   const hours = date.getHours();
@@ -216,10 +218,11 @@ const generateBlogHTML = (blog) => {
   `;
 };
 const deleteBlog = async (e) => {
-  const blogId = e.target.dataset_delete; // Assuming you're passing the blog id through a data attribute
-  console.log(blogId);
+  const blogId = e.target.getAttribute("dataset_delete"); // Assuming you're passing the blog id through a data attribute
+  // console.log(blogId);
   try {
     await deleteDoc(doc(db, "blogs", `${blogId}`));
+    loadBlogs();
     console.log("Blog deleted successfully");
   } catch (error) {
     console.error("Error deleting blog:", error);
@@ -239,18 +242,19 @@ const loadBlogs = () => {
     orderBy("timestamp"),
     limit(25)
   );
-  // console.log(q);
   const unsubscribe = onSnapshot(q, (querySnapshot) => {
+    // console.log(querySnapshot);
     if (!querySnapshot.empty) {
       loadingBar.style.display = "none";
       const messagesHTML = querySnapshot.docs
         .map((doc) => {
           const blog = doc.data();
+          // console.log(blog);
           return generateBlogHTML(blog); // Using the generateBlogHTML function here
         })
         .join("");
 
-      blogs.innerHTML = `  <div class="container mx-auto px-4 text-5xl font-bold flex justify-start my-6 font-mono">MY BLOGS</div>${messagesHTML}`;
+      blogs.innerHTML = `<div class="container mx-auto px-4 text-5xl font-bold flex justify-start my-6 font-mono">MY BLOGS</div>${messagesHTML}`;
       const read = document.querySelectorAll("#read");
       const deleteBtn = document.querySelectorAll("#delete");
       deleteBtn.forEach((d) => {
@@ -279,17 +283,29 @@ const loadBlogs = () => {
   });
 };
 
-const previewBlog = async (e) => {
-  const blogId = e.target.dataset_item;
-  console.log(e.target.dataset_item);
-  console.log(blogId);
-  const q = query(collection(db, "blogs"), where("id", "==", `${blogId}`));
+const previewBlog = (e) => {
+  let blogId = e.target.getAttribute("dataset_item");
+  blogId = Number(blogId);
+  // console.log(typeof blogId);
+  const q = query(collection(db, "blogs"), where("id", "==", blogId));
+  // console.log(q);
+  // const querySnapshot = await getDocs(q);
+  // console.log(querySnapshot);
   const unsubscribe = onSnapshot(q, (querySnapshot) => {
+    // console.log(querySnapshot);
     const messagesHTML = querySnapshot.docs
       .map((doc) => {
         const blog = doc.data();
+        const date = new Date(blog.timestamp);
+        // console.log(date);
+        const hours = date.getHours();
+        // console.log(hours);
+        const minutes = date.getMinutes();
+        // console.log(minutes);
+        const formattedDate = `${hours}:${minutes}`;
+        // console.log(blog);
         return `
-  <div class="max-w-screen-lg mx-auto">
+  <div class="max-w-screen-lg mx-auto my-10 ">
     <div class="mb-4 md:mb-0 w-full mx-auto relative">
       <div class="px-4 lg:px-0">
         <h2 class="text-4xl font-semibold text-gray-800 leading-tight">
@@ -297,13 +313,13 @@ const previewBlog = async (e) => {
         </h2>
         <a
           href="#"
-          class="py-2 text-green-700 inline-flex items-center justify-center mb-2"
+          class="py-2 text-green-700 inline-flex items-center justify-center mb-2 me-4"
         >
-          ${blog.timestamp}
+          ${formattedDate}
         </a>
         <a
           href="#"
-          class="py-2 text-green-700 inline-flex items-center justify-center mb-2"
+          class="py-2 text-green-700 inline-flex items-center justify-center mb-2 "
         >
           ${blog.description}
         </a>
@@ -322,7 +338,7 @@ const previewBlog = async (e) => {
       </div>
 
       <div class="w-full lg:w-1/4 m-auto mt-12 max-w-screen-sm">
-        <div class="p-4 border-t border-b md:border md:rounded">
+        <div class="p-4 border-t border-b md:border md:rounded w-auto">
           <div class="flex py-2">
             <img
               src="${blog.photoURL}"
@@ -333,7 +349,7 @@ const previewBlog = async (e) => {
                 ${blog.displayName}
               </p>
               <p class="font-semibold text-gray-600 text-xs"> Author </p>
-              <p class="font-semibold text-gray-600 text-xs"> ${blog.email} </p>
+              
             </div>
           </div>
           <p class="text-gray-700 py-3">
@@ -347,9 +363,18 @@ const previewBlog = async (e) => {
         </div>
       </div>
     </div>
-  </div>`;
+  </div>
+  <form class="max-w-2xl bg-white rounded-lg border p-2 mx-auto mt-20 mb-20">
+    <div class="px-3 mb-2 mt-2">
+        <textarea placeholder="comment" class="w-full bg-gray-100 rounded border border-gray-400 leading-normal resize-none h-20 py-2 px-3 font-medium placeholder-gray-700 focus:outline-none focus:bg-white"></textarea>
+    </div>
+    <div class="flex justify-end px-4">
+        <input type="submit" class="px-2.5 py-1.5 rounded-md text-white text-sm bg-indigo-500" value="Comment">
+    </div>
+</form>`;
       })
       .join("");
+    // console.log(messagesHTML);
     blogs.innerHTML = messagesHTML;
   });
 };
