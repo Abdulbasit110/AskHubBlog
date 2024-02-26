@@ -26,6 +26,7 @@ import {
   limit,
   where,
   getDocs,
+  updateDoc,
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -222,6 +223,7 @@ const submitBlogfunc = async () => {
           content,
           imageUrl: downloadURL,
           description,
+          comment: [],
         })
           .then(() => {
             blogs.style.display = "block";
@@ -419,19 +421,48 @@ const previewBlog = (e) => {
   </div>
   <form class="max-w-2xl bg-white rounded-lg border p-2 mx-auto mt-20 mb-20">
     <div class="px-3 mb-2 mt-2">
-        <textarea placeholder="comment" class="w-full bg-gray-100 rounded border border-gray-400 leading-normal resize-none h-20 py-2 px-3 font-medium placeholder-gray-700 focus:outline-none focus:bg-white"></textarea>
+        <textarea id="userComment" placeholder="comment" class="w-full bg-gray-100 rounded border border-gray-400 leading-normal resize-none h-20 py-2 px-3 font-medium placeholder-gray-700 focus:outline-none focus:bg-white"></textarea>
     </div>
     <div class="flex justify-end px-4">
-        <input type="submit" class="px-2.5 py-1.5 rounded-md text-white text-sm bg-indigo-500" value="Comment">
+        <button type="button" class="px-2.5 py-1.5 rounded-md text-white text-sm bg-indigo-500" value="Comment" id="comment" dataset_item="${blog.id}" >Comment</button>
     </div>
 </form>`;
       })
       .join("");
-    // console.log(messagesHTML);
     blogs.innerHTML = messagesHTML;
+    const commentbtn = document.getElementById("comment");
+    commentbtn && commentbtn.addEventListener("click", addComment);
   });
 };
 
+const addComment = async () => {
+  const userComment = document.getElementById("userComment").value;
+  const blogId = document
+    .getElementById("comment")
+    .getAttribute("dataset_item");
+  const user = auth.currentUser;
+  const { email, displayName, photoURL, uid } = user;
+  const blog = doc(db, "cities", `${blogId}`);
+  const allComments = blog.comment;
+  const comment = [
+    ...allComments,
+    {
+      email,
+      displayName,
+      photoURL,
+      userComment,
+    },
+  ];
+  try {
+    await updateDoc(blog, {
+      comment,
+    });
+    console.log("Comment added successfully");
+  } catch (error) {
+    console.error("Error adding comment:", error);
+    // Handle error, maybe show a message to the user
+  }
+};
 const logInUser = () => {
   const userEmail = email.value;
   const userPassword = password.value;
