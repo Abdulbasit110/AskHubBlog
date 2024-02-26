@@ -77,6 +77,7 @@ const logoutLink = document.getElementById("logoutLink");
 const homeLink = document.getElementById("homeLink");
 const askhubblog = document.getElementById("askhubblog");
 const profile = document.getElementById("profile");
+const loadingBar = document.getElementById("loadingBar");
 Signup ? (Signup.style.display = "none") : null;
 newBlogForm ? (newBlogForm.style.display = "none") : null;
 
@@ -98,7 +99,7 @@ const backToBlogs = async () => {
   loadBlogs();
 };
 const previewAllBlogs = () => {
-  const loadingBar = document.getElementById("loadingBar");
+  // const loadingBar = document.getElementById("loadingBar");
   loadingBar.style.display = "flex";
 
   const q = query(
@@ -132,27 +133,32 @@ const previewAllBlogs = () => {
 };
 
 const submitBlogfunc = async () => {
+  // Get the loader element
+  newBlogForm.style.display = "none";
+  loadingBar.style.display = "flex"; // Display the loader
+
   const user = auth.currentUser;
-  // console.log("inside submit blog function");
   const title = document.getElementById("title").value;
   const content = document.getElementById("content").value;
   const description = document.getElementById("description").value;
   const image = document.getElementById("image").files[0];
   const storageRef = ref(storage, `images/${image.name}`);
   const uploadTask = uploadBytesResumable(storageRef, image);
+
   uploadTask.on(
     "state_changed",
     (snapshot) => {
-      // console.log(snapshot);
+      // You can update the loader here if needed
     },
     (error) => {
       console.log(error);
+      loader.style.display = "none"; // Hide the loader in case of error
     },
     async () => {
       getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
         const { email, displayName, photoURL, uid } = user;
         const id = new Date().getTime();
-        // console.log("File available at", downloadURL);
+
         setDoc(doc(db, "blogs", `${id}`), {
           email,
           uid,
@@ -164,12 +170,18 @@ const submitBlogfunc = async () => {
           content,
           imageUrl: downloadURL,
           description,
-        });
+        })
+          .then(() => {
+            blogs.style.display = "block";
+            // loadingBar.style.display = "none"; // Hide the loader when operation is complete
+          })
+          .catch((error) => {
+            console.log(error);
+            loadingBar.style.display = "none"; // Hide the loader in case of error
+          });
       });
     }
   );
-  newBlogForm.style.display = "none";
-  blogs.style.display = "block";
 };
 
 const generateBlogHTML = (blog) => {
@@ -273,7 +285,6 @@ const deleteBlog = async (e) => {
 };
 
 const loadBlogs = () => {
-  const loadingBar = document.getElementById("loadingBar");
   loadingBar.style.display = "flex";
   const user = auth.currentUser;
   const uid = user.uid;
