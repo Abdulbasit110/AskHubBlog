@@ -81,6 +81,58 @@ const loadingBar = document.getElementById("loadingBar");
 Signup ? (Signup.style.display = "none") : null;
 newBlogForm ? (newBlogForm.style.display = "none") : null;
 
+const loadBlogs = () => {
+  loadingBar.style.display = "flex";
+  const user = auth.currentUser;
+  const uid = user.uid;
+  // console.log(user);
+  const q = query(
+    collection(db, "blogs"),
+    where("uid", "==", `${uid}`),
+    orderBy("timestamp"),
+    limit(25)
+  );
+  const unsubscribe = onSnapshot(q, (querySnapshot) => {
+    // console.log(querySnapshot);
+    if (!querySnapshot.empty) {
+      loadingBar.style.display = "none";
+      const messagesHTML = querySnapshot.docs
+        .map((doc) => {
+          const blog = doc.data();
+          // console.log(blog);
+          return generateBlogHTML(blog); // Using the generateBlogHTML function here
+        })
+        .join("");
+
+      blogs.innerHTML = `<div class="container mx-auto px-4 text-5xl font-bold flex justify-start my-6 font-mono">MY BLOGS</div>${messagesHTML}`;
+      const read = document.querySelectorAll("#read");
+      const deleteBtn = document.querySelectorAll("#delete");
+      deleteBtn.forEach((d) => {
+        d.addEventListener("click", deleteBlog);
+      });
+      read.forEach((r) => {
+        r.addEventListener("click", previewBlog);
+        // console.log(r);
+      });
+    } else {
+      loadingBar.style.display = "none";
+      blogs.innerHTML = `
+      <div class="h-80 sm:ms-10 ">
+ <h1 class="mt-4 text-4xl font-extrabold leading-none tracking-tight text-gray-900 md:text-5xl lg:text-6xl ">Let's start bloging / asking</h1> 
+<p class="mt-10 text-lg font-normal text-gray-500 lg:text-xl sm:px-16 xl:px-48 dark:text-gray-400">your first blog / question is just few clicks away!!</p>
+<a id="btn" href="#" class="inline-flex items-center justify-center px-5 py-3 text-base font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 dark:focus:ring-blue-900 mt-20">
+    Start Now
+    <svg class="w-3.5 h-3.5 ms-2 rtl:rotate-180" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
+    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 5h12m0 0L9 1m4 4L9 9"/>
+  </svg>
+</a> </div>`;
+    }
+    const btn = document.getElementById("btn");
+    btn && btn.addEventListener("click", addBlog);
+    // console.log(btn);
+  });
+};
+
 function myFunction() {
   if (password.type === "password") {
     password.type = "text";
@@ -282,58 +334,6 @@ const deleteBlog = async (e) => {
     console.error("Error deleting blog:", error);
     // Handle error, maybe show a message to the user
   }
-};
-
-const loadBlogs = () => {
-  loadingBar.style.display = "flex";
-  const user = auth.currentUser;
-  const uid = user.uid;
-  // console.log(user);
-  const q = query(
-    collection(db, "blogs"),
-    where("uid", "==", `${uid}`),
-    orderBy("timestamp"),
-    limit(25)
-  );
-  const unsubscribe = onSnapshot(q, (querySnapshot) => {
-    // console.log(querySnapshot);
-    if (!querySnapshot.empty) {
-      loadingBar.style.display = "none";
-      const messagesHTML = querySnapshot.docs
-        .map((doc) => {
-          const blog = doc.data();
-          // console.log(blog);
-          return generateBlogHTML(blog); // Using the generateBlogHTML function here
-        })
-        .join("");
-
-      blogs.innerHTML = `<div class="container mx-auto px-4 text-5xl font-bold flex justify-start my-6 font-mono">MY BLOGS</div>${messagesHTML}`;
-      const read = document.querySelectorAll("#read");
-      const deleteBtn = document.querySelectorAll("#delete");
-      deleteBtn.forEach((d) => {
-        d.addEventListener("click", deleteBlog);
-      });
-      read.forEach((r) => {
-        r.addEventListener("click", previewBlog);
-        // console.log(r);
-      });
-    } else {
-      loadingBar.style.display = "none";
-      blogs.innerHTML = `
-      <div class="h-80 sm:ms-10 ">
- <h1 class="mt-4 text-4xl font-extrabold leading-none tracking-tight text-gray-900 md:text-5xl lg:text-6xl ">Let's start bloging / asking</h1> 
-<p class="mt-10 text-lg font-normal text-gray-500 lg:text-xl sm:px-16 xl:px-48 dark:text-gray-400">your first blog / question is just few clicks away!!</p>
-<a id="btn" href="#" class="inline-flex items-center justify-center px-5 py-3 text-base font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 dark:focus:ring-blue-900 mt-20">
-    Start Now
-    <svg class="w-3.5 h-3.5 ms-2 rtl:rotate-180" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
-    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 5h12m0 0L9 1m4 4L9 9"/>
-  </svg>
-</a> </div>`;
-    }
-    const btn = document.getElementById("btn");
-    btn && btn.addEventListener("click", addBlog);
-    // console.log(btn);
-  });
 };
 
 const previewBlog = (e) => {
