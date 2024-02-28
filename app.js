@@ -25,7 +25,7 @@ import {
   orderBy,
   limit,
   where,
-  getDocs,
+  getDoc,
   updateDoc,
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
@@ -359,6 +359,34 @@ const previewBlog = (e) => {
         // console.log(minutes);
         const formattedDate = `${hours}:${minutes}`;
         // console.log(blog);
+        const comments = blog.comment;
+        const commentTime = new Date(comments.id);
+        console.log(commentTime);
+        const condition =
+          commentTime.getHours() + ":" + commentTime.getMinutes();
+        // console.log(comments);
+        const commentHtml = comments
+          .map((comment) => {
+            console.log(comment);
+            const commentTime = new Date(comment.id);
+            console.log(commentTime);
+            const condition =
+              commentTime.getHours() + ":" + commentTime.getMinutes();
+            return `
+      
+      <div class="flex items-center my-5">
+        <img src="${comment.photoURL}" class="h-8 w-18 rounded-full" />
+        <div class="ms-2">
+          <p class="text-sm  text-gray-500">${comment.displayName}</p>
+          <p class="text-gray-900 font-semibold ms-3">${comment.userComment}</p>
+          <p class="text-sm  text-gray-500 ms-3">${condition}</p>
+          
+        </div>
+        <i class="fa-solid fa-trash mt-10" style="color: #201d1d;" id="${blogId}" dataset_item ="${comment.id}" ></i>
+      </div>`;
+          })
+          .join("");
+        // console.log(commentHtml);
         return `
   <div class="max-w-screen-lg mx-auto my-10 ">
     <div class="mb-4 md:mb-0 w-full mx-auto relative">
@@ -419,8 +447,9 @@ const previewBlog = (e) => {
       </div>
     </div>
   </div>
-  <form class="max-w-2xl bg-white rounded-lg border p-2 mx-auto mt-20 mb-20">
-    <div class="px-3 mb-2 mt-2">
+  <form class="max-w-2xl bg-white rounded-lg border p-2 mx-auto mt-20 mb-20 " id="commentForm">
+  <div class="ms-3 ">${commentHtml}</div>
+    <div class="px-3 mb-2 mt-2 ">
         <textarea id="userComment" placeholder="comment" class="w-full bg-gray-100 rounded border border-gray-400 leading-normal resize-none h-20 py-2 px-3 font-medium placeholder-gray-700 focus:outline-none focus:bg-white"></textarea>
     </div>
     <div class="flex justify-end px-4">
@@ -431,36 +460,71 @@ const previewBlog = (e) => {
       .join("");
     blogs.innerHTML = messagesHTML;
     const commentbtn = document.getElementById("comment");
+    const deleteBtns = document.querySelectorAll(".fa-trash");
+    deleteBtns.forEach((d) => {
+      d.addEventListener("click", deleteComment);
+    });
     commentbtn && commentbtn.addEventListener("click", addComment);
   });
 };
 
+const deleteComment = async (e) => {
+  const user = auth.currentUser;
+  const blogId = e.target.getAttribute("id");
+  const commentId = e.target.getAttribute("dataset_item");
+  const blogRef = doc(db, "blogs", blogId);
+  const docSnap = await getDoc(blogRef);
+  const blog = docSnap.data();
+  console.log(blog);
+  const comments = blog.comment;
+  console.log(comments);
+  comments.forEach((comment) => {
+    if (comment.id === commentId) {
+      console.log(comment);
+      comments.splice(comments.indexOf(comment), 1);
+      console.log(comments);
+      updateDoc(blogRef, {
+        comment: comments,
+      });
+    }
+  });
+};
 const addComment = async () => {
   const userComment = document.getElementById("userComment").value;
-  const blogId = document
-    .getElementById("comment")
-    .getAttribute("dataset_item");
-  const user = auth.currentUser;
-  const { email, displayName, photoURL, uid } = user;
-  const blog = doc(db, "cities", `${blogId}`);
-  const allComments = blog.comment;
-  const comment = [
-    ...allComments,
-    {
+  if (userComment) {
+    const blogId = document
+      .getElementById("comment")
+      .getAttribute("dataset_item");
+    const user = auth.currentUser;
+    const { email, displayName, photoURL, uid } = user;
+    const blogRef = doc(db, "blogs", blogId);
+    // console.log(blogRef);
+    const docSnap = await getDoc(blogRef);
+    // console.log(docSnap);
+    const blog = docSnap.data();
+    // console.log(blog);
+    let comment = blog.comment;
+    // console.log(comment);
+    const newComment = {
+      id: new Date().getTime(),
       email,
       displayName,
       photoURL,
       userComment,
-    },
-  ];
-  try {
-    await updateDoc(blog, {
-      comment,
-    });
-    console.log("Comment added successfully");
-  } catch (error) {
-    console.error("Error adding comment:", error);
-    // Handle error, maybe show a message to the user
+    };
+    comment.push(newComment);
+    console.log(comment);
+    try {
+      await updateDoc(blogRef, {
+        comment,
+      });
+      console.log("Comment added successfully");
+    } catch (error) {
+      console.error("Error adding comment:", error);
+      // Handle error, maybe show a message to the user
+    }
+  } else {
+    return;
   }
 };
 const logInUser = () => {
