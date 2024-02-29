@@ -339,13 +339,11 @@ const deleteBlog = async (e) => {
 };
 
 const previewBlog = (e) => {
+  const user = auth.currentUser;
   let blogId = e.target.getAttribute("dataset_item");
   blogId = Number(blogId);
   // console.log(typeof blogId);
   const q = query(collection(db, "blogs"), where("id", "==", blogId));
-  // console.log(q);
-  // const querySnapshot = await getDocs(q);
-  // console.log(querySnapshot);
   const unsubscribe = onSnapshot(q, (querySnapshot) => {
     // console.log(querySnapshot);
     const messagesHTML = querySnapshot.docs
@@ -360,30 +358,43 @@ const previewBlog = (e) => {
         const formattedDate = `${hours}:${minutes}`;
         // console.log(blog);
         const comments = blog.comment;
-        const commentTime = new Date(comments.id);
-        console.log(commentTime);
-        const condition =
-          commentTime.getHours() + ":" + commentTime.getMinutes();
+        // const commentTime = new Date(comments.id);
+        // console.log(commentTime);
+        // const condition =
+        //   commentTime.getHours() + ":" + commentTime.getMinutes();
         // console.log(comments);
         const commentHtml = comments
           .map((comment) => {
-            console.log(comment);
+            const user = auth.currentUser;
+            // console.log(comment);
             const commentTime = new Date(comment.id);
-            console.log(commentTime);
+            // console.log(commentTime);
             const condition =
               commentTime.getHours() + ":" + commentTime.getMinutes();
-            return `
+            if (user.uid == blog.uid) {
+              return `
       
-      <div class="flex items-center my-5">
+      <div class="flex-column items-center my-5">
+        <img src="${comment.photoURL}" class="h-8 w-18 rounded-full" />
+        <div class="ms-2 ">
+          <p class="text-sm  text-gray-500">${comment.displayName}</p>
+          <p class="text-gray-900 font-semibold ms-3">${comment.userComment}</p>
+          <p class="text-sm  text-gray-500 ms-3">${condition}</p>
+           
+        </div>
+       <i class="fa-solid fa-trash ms-20" style="color: #201d1d;" id="${blogId}" dataset_item ="${comment.id}" ></i>
+      </div>`;
+            } else {
+              return `
+          <div class="flex-column items-center my-5">
         <img src="${comment.photoURL}" class="h-8 w-18 rounded-full" />
         <div class="ms-2">
           <p class="text-sm  text-gray-500">${comment.displayName}</p>
           <p class="text-gray-900 font-semibold ms-3">${comment.userComment}</p>
           <p class="text-sm  text-gray-500 ms-3">${condition}</p>
-          
-        </div>
-        <i class="fa-solid fa-trash mt-10" style="color: #201d1d;" id="${blogId}" dataset_item ="${comment.id}" ></i>
-      </div>`;
+          </div>
+          `;
+            }
           })
           .join("");
         // console.log(commentHtml);
@@ -472,20 +483,24 @@ const deleteComment = async (e) => {
   const user = auth.currentUser;
   const blogId = e.target.getAttribute("id");
   const commentId = e.target.getAttribute("dataset_item");
+  console.log(commentId);
   const blogRef = doc(db, "blogs", blogId);
   const docSnap = await getDoc(blogRef);
   const blog = docSnap.data();
-  console.log(blog);
+  // console.log(blog);
   const comments = blog.comment;
-  console.log(comments);
+  // console.log(comments);
   comments.forEach((comment) => {
-    if (comment.id === commentId) {
-      console.log(comment);
+    // console.log(comment);
+    // debugger;
+    if (comment.id == commentId) {
+      // console.log(comment);
       comments.splice(comments.indexOf(comment), 1);
-      console.log(comments);
+      // console.log(comments);
       updateDoc(blogRef, {
         comment: comments,
       });
+      window.scrollTo(0, document.body.scrollHeight);
     }
   });
 };
