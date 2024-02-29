@@ -118,15 +118,18 @@ const loadBlogs = () => {
     } else {
       loadingBar.style.display = "none";
       blogs.innerHTML = `
-      <div class="h-80 sm:ms-10 ">
+      <div class="h-80 sm:ms-10">
  <h1 class="mt-4 text-4xl font-extrabold leading-none tracking-tight text-gray-900 md:text-5xl lg:text-6xl ">Let's start bloging / asking</h1> 
-<p class="mt-10 text-lg font-normal text-gray-500 lg:text-xl sm:px-16 xl:px-48 dark:text-gray-400">your first blog / question is just few clicks away!!</p>
+<p class="mt-10 text-lg font-normal text-gray-500 lg:text-xl sm:px-16 px-48 dark:text-gray-400">your first blog / question is just few clicks away!!</p>
+<div class="ms-32">
 <a id="btn" href="#" class="inline-flex items-center justify-center px-5 py-3 text-base font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 dark:focus:ring-blue-900 mt-20">
     Start Now
     <svg class="w-3.5 h-3.5 ms-2 rtl:rotate-180" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
     <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 5h12m0 0L9 1m4 4L9 9"/>
   </svg>
-</a> </div>`;
+</a>
+</div>
+ </div>`;
     }
     const btn = document.getElementById("btn");
     btn && btn.addEventListener("click", addBlog);
@@ -179,7 +182,9 @@ const previewAllBlogs = () => {
     } else {
       loadingBar.style.display = "none";
       blogs.innerHTML = `
-        <h1 class="text-4xl font-bold text-gray-900">No blogs found.</h1>
+      <div class="h-80">
+        <h1 class="text-4xl font-bold text-gray-900 mt-6">No blogs found.</h1>
+        </div>
       `;
     }
   });
@@ -371,13 +376,17 @@ const previewBlog = (e) => {
             // console.log(commentTime);
             const condition =
               commentTime.getHours() + ":" + commentTime.getMinutes();
-            if (user.uid == blog.uid) {
+            // console.log(comment.uid);
+            if (user.uid == blog.uid || user.uid == comment.uid) {
               return `
       
       <div class="flex-column items-center my-5">
-        <img src="${comment.photoURL}" class="h-8 w-18 rounded-full" />
+      <div class="flex">
+        <img src="${comment.photoURL}" class="h-8 w-18 rounded-full mb-6" />
+         <p class="text-sm  text-gray-500 ms-2">${comment.displayName}</p>
+         </div>
         <div class="ms-2 ">
-          <p class="text-sm  text-gray-500">${comment.displayName}</p>
+         
           <p class="text-gray-900 font-semibold ms-3">${comment.userComment}</p>
           <p class="text-sm  text-gray-500 ms-3">${condition}</p>
            
@@ -500,7 +509,8 @@ const deleteComment = async (e) => {
       updateDoc(blogRef, {
         comment: comments,
       });
-      window.scrollTo(0, document.body.scrollHeight);
+      const commentForm = document.getElementById("commentForm");
+      commentForm.scrollTo(0, document.body.scrollHeight);
     }
   });
 };
@@ -522,13 +532,14 @@ const addComment = async () => {
     // console.log(comment);
     const newComment = {
       id: new Date().getTime(),
+      uid,
       email,
       displayName,
       photoURL,
       userComment,
     };
     comment.push(newComment);
-    console.log(comment);
+    // console.log(comment);
     try {
       await updateDoc(blogRef, {
         comment,
