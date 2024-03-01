@@ -487,6 +487,7 @@ const previewBlog = (e) => {
     const commentbtn = document.getElementById("comment");
     const deleteBtns = document.querySelectorAll(".fa-trash");
     deleteBtns.forEach((d) => {
+      d.classList.add("cursor-pointer");
       d.addEventListener("click", deleteComment);
     });
     commentbtn && commentbtn.addEventListener("click", addComment);
