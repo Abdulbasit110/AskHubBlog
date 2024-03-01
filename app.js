@@ -382,10 +382,10 @@ const previewBlog = (e) => {
       
       <div class="flex-column items-center my-5">
       <div class="flex">
-        <img src="${comment.photoURL}" class="h-8 w-18 rounded-full mb-6" />
+        <img src="${comment.photoURL}" class="h-8 w-18 rounded-full mb-1" />
          <p class="text-sm  text-gray-500 ms-2">${comment.displayName}</p>
          </div>
-        <div class="ms-2 ">
+        <div class="ms-3 ">
          
           <p class="text-gray-900 font-semibold ms-3">${comment.userComment}</p>
           <p class="text-sm  text-gray-500 ms-3">${condition}</p>
@@ -395,14 +395,19 @@ const previewBlog = (e) => {
       </div>`;
             } else {
               return `
-          <div class="flex-column items-center my-5">
-        <img src="${comment.photoURL}" class="h-8 w-18 rounded-full" />
-        <div class="ms-2">
-          <p class="text-sm  text-gray-500">${comment.displayName}</p>
+           <div class="flex-column items-center my-5">
+      <div class="flex">
+        <img src="${comment.photoURL}" class="h-8 w-18 rounded-full mb-1" />
+         <p class="text-sm  text-gray-500 ms-2">${comment.displayName}</p>
+         </div>
+        <div class="ms-3 ">
+         
           <p class="text-gray-900 font-semibold ms-3">${comment.userComment}</p>
           <p class="text-sm  text-gray-500 ms-3">${condition}</p>
-          </div>
-          `;
+           
+        </div>
+      
+      </div>`;
             }
           })
           .join("");
