@@ -241,6 +241,10 @@ const submitBlogfunc = async () => {
       });
     }
   );
+  document.getElementById("title").value = "";
+  document.getElementById("content").value = "";
+  document.getElementById("description").value = "";
+  document.getElementById("image").value = null;
 };
 
 const generateBlogHTML = (blog) => {
